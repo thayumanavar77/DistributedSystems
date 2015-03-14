@@ -90,24 +90,10 @@ struct Channels{
 int global_event_counter;
 class Event;
 
-struct Pair_comparator {
-  bool operator()(const std::pair<int,int>& p1, const std::pair<int,int>& p2) const
-  {
-    return p1.first < p2.first;
-  }
-};
-
 class Process {
 private:
   Lamport_clock m_lc;
   std::map< std::pair<int,int>, Channels> m_comm_channel_map;
-#if 0
-       std::function<bool(std::pair<int,int>&, std::pair<int,int>&)> > m_comm_channel_map(
-              [] (const std::pair<int, int>& p1,
-                  const std::pair<int, int>& p2)
-                { return p1.first < p2.first });
-#endif
-
   std::queue< std::shared_ptr<Event> > m_execute_events;
 public:
   Process(int pid)
