@@ -90,11 +90,20 @@ struct Channels{
 int global_event_counter;
 class Event;
 
+struct Pair_comparator {
+  bool operator()(const std::pair<int,int>& p1, const std::pair<int,int>& p2) const
+  {
+    return p1.first < p2.first;
+  }
+};
+
 class Process {
 private:
   Lamport_clock m_lc;
   std::map< std::pair<int,int>, Channels> m_comm_channel_map;
   std::queue< std::shared_ptr<Event> > m_execute_events;
+  std::vector< int > m_lamport_timestamps_vec;
+
 public:
   Process(int pid)
   {
@@ -162,7 +171,15 @@ public:
   {
     global_event_counter++;
     m_lc.m_lamport_timestamp++;
-    std::cout<<" Process : " <<m_lc.m_pid<<"   "<<m_lc.m_lamport_timestamp<<std::endl;
+    m_lamport_timestamps_vec.push_back(m_lc.m_lamport_timestamp);
+  }
+
+  void dump_lamport_timestamps()
+  {
+    for (auto iter= m_lamport_timestamps_vec.begin();
+         iter != m_lamport_timestamps_vec.end(); ++iter)
+         std::cout<< *iter <<"  ";
+    std::cout<<std::endl;
   }
 
 };
@@ -259,6 +276,13 @@ main(int argc, char **argv)
       {
         int recv_id;
         std::cin>>recv_id;
+        if (recv_id == i)
+        {
+          std::cout<<" Input specification incorrect ";
+          std::cout<<"  (recieve from same process.) "<<std::endl;
+          exit(1);
+        }
+
         p[i]->push_execute_event(std::shared_ptr<Event>(new Send_event(recv_id)));
 
       }
@@ -266,6 +290,12 @@ main(int argc, char **argv)
       {
         int sender_id;
         std::cin>>sender_id;
+        if (sender_id == i)
+        {
+          std::cout<<" Input specification incorrect ";
+          std::cout<<" (send from same process.) "<<std::endl;
+          exit(1);
+        }
         p[i]->push_execute_event(std::shared_ptr<Event>(new Received_event(sender_id)));
       }
     }
@@ -294,6 +324,12 @@ main(int argc, char **argv)
 
   for(int i= 0; i < num_process; ++i)
     t[i].join();
-  
+
+  for(int i= 0; i < num_process;++i)
+  {
+    std::cout<<"Process "<<p[i]->get_pid()<<" : ";
+    p[i]->dump_lamport_timestamps();
+  }
+
   return 0;
 }  
