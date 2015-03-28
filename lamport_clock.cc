@@ -90,13 +90,6 @@ struct Channels{
 int global_event_counter;
 class Event;
 
-struct Pair_comparator {
-  bool operator()(const std::pair<int,int>& p1, const std::pair<int,int>& p2) const
-  {
-    return p1.first < p2.first;
-  }
-};
-
 class Process {
 private:
   Lamport_clock m_lc;
